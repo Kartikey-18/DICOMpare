@@ -6,7 +6,7 @@
         Height="900" Width="1400"
         MinHeight="600" MinWidth="900"
         WindowStartupLocation="CenterScreen"
-        Background="#1E1E2E">
+        Background="{Binding Theme.WindowBackground}">
 
     <Window.Resources>
         <conv:SafetyToColorConverter x:Key="SafetyToColor"/>
@@ -15,66 +15,6 @@
         <conv:MatchStatusToColorConverter x:Key="StatusToColor"/>
         <conv:BoolToVisibilityConverter x:Key="BoolToVis"/>
         <conv:VerdictToColorConverter x:Key="VerdictToColor"/>
-
-        <!-- Dark theme styles -->
-        <Style TargetType="TextBlock">
-            <Setter Property="Foreground" Value="#CDD6F4"/>
-            <Setter Property="FontFamily" Value="Segoe UI"/>
-        </Style>
-
-        <Style x:Key="HeaderText" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="#CDD6F4"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-        </Style>
-
-        <Style x:Key="BrowseButton" TargetType="Button">
-            <Setter Property="Background" Value="#45475A"/>
-            <Setter Property="Foreground" Value="#CDD6F4"/>
-            <Setter Property="BorderBrush" Value="#585B70"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="16,8"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="4"
-                                Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#585B70"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="PathTextBox" TargetType="TextBox">
-            <Setter Property="Background" Value="#313244"/>
-            <Setter Property="Foreground" Value="#A6ADC8"/>
-            <Setter Property="BorderBrush" Value="#45475A"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="8,6"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="IsReadOnly" Value="True"/>
-        </Style>
-
-        <Style x:Key="FilterTextBox" TargetType="TextBox">
-            <Setter Property="Background" Value="#313244"/>
-            <Setter Property="Foreground" Value="#CDD6F4"/>
-            <Setter Property="BorderBrush" Value="#45475A"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="8,6"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="CaretBrush" Value="#CDD6F4"/>
-        </Style>
     </Window.Resources>
 
     <Grid Margin="16">
@@ -87,11 +27,32 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Title bar -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,16">
-            <TextBlock Text="DiCOMpare" FontSize="24" FontWeight="Bold" Foreground="#89B4FA"/>
-            <TextBlock Text="DICOM Tag Comparison and Safety Analysis" FontSize="12" Foreground="#6C7086" Margin="0,2,0,0"/>
-        </StackPanel>
+        <!-- Title bar with theme toggle -->
+        <DockPanel Grid.Row="0" Margin="0,0,0,16">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Top">
+                <Button Content="{Binding Theme.ToggleLabel}" Click="ToggleTheme_Click"
+                        Padding="12,6" FontSize="12" Cursor="Hand"
+                        Background="{Binding Theme.ButtonBackground}"
+                        Foreground="{Binding Theme.TextPrimary}"
+                        BorderBrush="{Binding Theme.BorderColor}" BorderThickness="1">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+            </StackPanel>
+            <StackPanel>
+                <TextBlock Text="DiCOMpare" FontSize="24" FontWeight="Bold" Foreground="{Binding Theme.AccentBlue}"/>
+                <TextBlock Text="DICOM Tag Comparison and Safety Analysis" FontSize="12"
+                           Foreground="{Binding Theme.TextMuted}" Margin="0,2,0,0"/>
+            </StackPanel>
+        </DockPanel>
 
         <!-- Study loaders - side by side -->
         <Grid Grid.Row="1" Margin="0,0,0,12">
@@ -102,40 +63,114 @@
             </Grid.ColumnDefinitions>
 
             <!-- Left study -->
-            <Border Grid.Column="0" Background="#181825" CornerRadius="8" Padding="12">
+            <Border Grid.Column="0" Background="{Binding Theme.PanelBackground}" CornerRadius="8" Padding="12"
+                    BorderBrush="{Binding Theme.BorderColor}" BorderThickness="1">
                 <StackPanel>
-                    <TextBlock Text="SOURCE STUDY (Rejected)" Style="{StaticResource HeaderText}" Foreground="#F38BA8" Margin="0,0,0,8"/>
+                    <TextBlock Text="SOURCE STUDY (Rejected)" FontSize="14" FontWeight="SemiBold"
+                               Foreground="{Binding Theme.AccentRed}" Margin="0,0,0,8"/>
                     <DockPanel Margin="0,0,0,8">
-                        <Button DockPanel.Dock="Right" Content="Browse Folder" Style="{StaticResource BrowseButton}" Click="BrowseLeft_Click" Margin="8,0,0,0"/>
-                        <Button DockPanel.Dock="Right" Content="Browse File" Style="{StaticResource BrowseButton}" Click="BrowseLeftFile_Click" Margin="8,0,0,0"/>
-                        <TextBox Style="{StaticResource PathTextBox}" Text="{Binding LeftPath, Mode=OneWay}" AllowDrop="True" Drop="LeftDrop" DragOver="DragOverHandler"/>
+                        <Button DockPanel.Dock="Right" Content="Browse Folder" Click="BrowseLeft_Click" Margin="8,0,0,0"
+                                Padding="16,8" FontSize="13" Cursor="Hand"
+                                Background="{Binding Theme.ButtonBackground}"
+                                Foreground="{Binding Theme.TextPrimary}"
+                                BorderBrush="{Binding Theme.BorderColor}" BorderThickness="1">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4"
+                                            Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                        <Button DockPanel.Dock="Right" Content="Browse File" Click="BrowseLeftFile_Click" Margin="8,0,0,0"
+                                Padding="16,8" FontSize="13" Cursor="Hand"
+                                Background="{Binding Theme.ButtonBackground}"
+                                Foreground="{Binding Theme.TextPrimary}"
+                                BorderBrush="{Binding Theme.BorderColor}" BorderThickness="1">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4"
+                                            Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                        <TextBox IsReadOnly="True" Text="{Binding LeftPath, Mode=OneWay}" AllowDrop="True"
+                                 Drop="LeftDrop" DragOver="DragOverHandler"
+                                 Background="{Binding Theme.InputBackground}"
+                                 Foreground="{Binding Theme.TextSecondary}"
+                                 BorderBrush="{Binding Theme.BorderColor}" BorderThickness="1"
+                                 Padding="8,6" FontSize="12"/>
                     </DockPanel>
-                    <TextBlock Text="{Binding LeftStudySummary}" FontSize="11" Foreground="#A6ADC8" FontFamily="Consolas" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding LeftStudySummary}" FontSize="11"
+                               Foreground="{Binding Theme.TextSecondary}" FontFamily="Consolas" TextWrapping="Wrap"/>
                 </StackPanel>
             </Border>
 
             <!-- Right study -->
-            <Border Grid.Column="2" Background="#181825" CornerRadius="8" Padding="12">
+            <Border Grid.Column="2" Background="{Binding Theme.PanelBackground}" CornerRadius="8" Padding="12"
+                    BorderBrush="{Binding Theme.BorderColor}" BorderThickness="1">
                 <StackPanel>
-                    <TextBlock Text="REFERENCE STUDY (Accepted)" Style="{StaticResource HeaderText}" Foreground="#A6E3A1" Margin="0,0,0,8"/>
+                    <TextBlock Text="REFERENCE STUDY (Accepted)" FontSize="14" FontWeight="SemiBold"
+                               Foreground="{Binding Theme.AccentGreen}" Margin="0,0,0,8"/>
                     <DockPanel Margin="0,0,0,8">
-                        <Button DockPanel.Dock="Right" Content="Browse Folder" Style="{StaticResource BrowseButton}" Click="BrowseRight_Click" Margin="8,0,0,0"/>
-                        <Button DockPanel.Dock="Right" Content="Browse File" Style="{StaticResource BrowseButton}" Click="BrowseRightFile_Click" Margin="8,0,0,0"/>
-                        <TextBox Style="{StaticResource PathTextBox}" Text="{Binding RightPath, Mode=OneWay}" AllowDrop="True" Drop="RightDrop" DragOver="DragOverHandler"/>
+                        <Button DockPanel.Dock="Right" Content="Browse Folder" Click="BrowseRight_Click" Margin="8,0,0,0"
+                                Padding="16,8" FontSize="13" Cursor="Hand"
+                                Background="{Binding Theme.ButtonBackground}"
+                                Foreground="{Binding Theme.TextPrimary}"
+                                BorderBrush="{Binding Theme.BorderColor}" BorderThickness="1">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4"
+                                            Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                        <Button DockPanel.Dock="Right" Content="Browse File" Click="BrowseRightFile_Click" Margin="8,0,0,0"
+                                Padding="16,8" FontSize="13" Cursor="Hand"
+                                Background="{Binding Theme.ButtonBackground}"
+                                Foreground="{Binding Theme.TextPrimary}"
+                                BorderBrush="{Binding Theme.BorderColor}" BorderThickness="1">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4"
+                                            Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                        <TextBox IsReadOnly="True" Text="{Binding RightPath, Mode=OneWay}" AllowDrop="True"
+                                 Drop="RightDrop" DragOver="DragOverHandler"
+                                 Background="{Binding Theme.InputBackground}"
+                                 Foreground="{Binding Theme.TextSecondary}"
+                                 BorderBrush="{Binding Theme.BorderColor}" BorderThickness="1"
+                                 Padding="8,6" FontSize="12"/>
                     </DockPanel>
-                    <TextBlock Text="{Binding RightStudySummary}" FontSize="11" Foreground="#A6ADC8" FontFamily="Consolas" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding RightStudySummary}" FontSize="11"
+                               Foreground="{Binding Theme.TextSecondary}" FontFamily="Consolas" TextWrapping="Wrap"/>
                 </StackPanel>
             </Border>
         </Grid>
 
         <!-- Verdict banner -->
-        <Border Grid.Row="2" Background="#181825" CornerRadius="8" Padding="12" Margin="0,0,0,12"
+        <Border Grid.Row="2" Background="{Binding Theme.PanelBackground}" CornerRadius="8" Padding="12" Margin="0,0,0,12"
+                BorderBrush="{Binding Theme.BorderColor}" BorderThickness="1"
                 Visibility="{Binding IsCompared, Converter={StaticResource BoolToVis}}">
             <StackPanel>
                 <TextBlock Text="{Binding VerdictText}" FontSize="14" FontWeight="Bold"
                            Foreground="{Binding VerdictText, Converter={StaticResource VerdictToColor}}"
                            TextWrapping="Wrap"/>
-                <TextBlock Text="{Binding SummaryText}" FontSize="12" Foreground="#A6ADC8" Margin="0,6,0,0"/>
+                <TextBlock Text="{Binding SummaryText}" FontSize="12"
+                           Foreground="{Binding Theme.TextSecondary}" Margin="0,6,0,0"/>
             </StackPanel>
         </Border>
 
@@ -147,35 +182,52 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <TextBox Grid.Column="0" Style="{StaticResource FilterTextBox}"
+            <TextBox Grid.Column="0" x:Name="FilterBox"
                      Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}"
-                     x:Name="FilterBox"/>
+                     Background="{Binding Theme.InputBackground}"
+                     Foreground="{Binding Theme.TextPrimary}"
+                     BorderBrush="{Binding Theme.BorderColor}" BorderThickness="1"
+                     Padding="8,6" FontSize="13" CaretBrush="{Binding Theme.TextPrimary}"/>
             <CheckBox Grid.Column="1" Content="Show only differences" Margin="12,0,0,0"
-                      Foreground="#CDD6F4" VerticalAlignment="Center" FontSize="13"
+                      Foreground="{Binding Theme.TextPrimary}" VerticalAlignment="Center" FontSize="13"
                       IsChecked="{Binding ShowOnlyDifferences}"/>
             <StackPanel Grid.Column="2" Orientation="Horizontal">
                 <CheckBox Content="Redact PHI" Margin="12,0,0,0" x:Name="RedactPhiCheckbox"
-                          Foreground="#F38BA8" VerticalAlignment="Center" FontSize="13"
+                          Foreground="{Binding Theme.AccentRed}" VerticalAlignment="Center" FontSize="13"
                           IsChecked="True"/>
-                <Button Content="Export Report" Style="{StaticResource BrowseButton}"
-                        Click="ExportReport_Click" Margin="12,0,0,0"/>
+                <Button Content="Export Report" Click="ExportReport_Click" Margin="12,0,0,0"
+                        Padding="16,8" FontSize="13" Cursor="Hand"
+                        Background="{Binding Theme.ButtonBackground}"
+                        Foreground="{Binding Theme.TextPrimary}"
+                        BorderBrush="{Binding Theme.BorderColor}" BorderThickness="1">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4"
+                                    Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
             </StackPanel>
         </Grid>
 
         <!-- Comparison table -->
-        <Border Grid.Row="4" Background="#181825" CornerRadius="8" Padding="0"
+        <Border Grid.Row="4" Background="{Binding Theme.PanelBackground}" CornerRadius="8" Padding="0"
+                BorderBrush="{Binding Theme.BorderColor}" BorderThickness="1"
                 Visibility="{Binding IsCompared, Converter={StaticResource BoolToVis}}">
             <DataGrid ItemsSource="{Binding FilteredRows}"
                       AutoGenerateColumns="False"
                       IsReadOnly="True"
                       HeadersVisibility="Column"
                       GridLinesVisibility="Horizontal"
-                      HorizontalGridLinesBrush="#313244"
+                      HorizontalGridLinesBrush="{Binding Theme.GridLine}"
                       Background="Transparent"
-                      Foreground="#CDD6F4"
+                      Foreground="{Binding Theme.TextPrimary}"
                       BorderThickness="0"
                       RowBackground="Transparent"
-                      AlternatingRowBackground="#1B1B2B"
+                      AlternatingRowBackground="{Binding Theme.RowAlt}"
                       FontSize="12"
                       FontFamily="Consolas"
                       CanUserSortColumns="True"
@@ -185,12 +237,12 @@
 
                 <DataGrid.ColumnHeaderStyle>
                     <Style TargetType="DataGridColumnHeader">
-                        <Setter Property="Background" Value="#313244"/>
-                        <Setter Property="Foreground" Value="#89B4FA"/>
+                        <Setter Property="Background" Value="{Binding DataContext.Theme.HeaderBackground, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                        <Setter Property="Foreground" Value="{Binding DataContext.Theme.AccentBlue, RelativeSource={RelativeSource AncestorType=Window}}"/>
                         <Setter Property="Padding" Value="8,4"/>
                         <Setter Property="FontSize" Value="12"/>
                         <Setter Property="FontWeight" Value="SemiBold"/>
-                        <Setter Property="BorderBrush" Value="#45475A"/>
+                        <Setter Property="BorderBrush" Value="{Binding DataContext.Theme.BorderColor, RelativeSource={RelativeSource AncestorType=Window}}"/>
                         <Setter Property="BorderThickness" Value="0,0,1,1"/>
                     </Style>
                 </DataGrid.ColumnHeaderStyle>
@@ -210,7 +262,7 @@
                         </Setter>
                         <Style.Triggers>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter Property="Background" Value="#45475A"/>
+                                <Setter Property="Background" Value="{Binding DataContext.Theme.SelectedRow, RelativeSource={RelativeSource AncestorType=Window}}"/>
                             </Trigger>
                         </Style.Triggers>
                     </Style>
@@ -242,7 +294,7 @@
                     <DataGridTextColumn Header="Tag" Binding="{Binding Tag}" Width="140">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
-                                <Setter Property="Foreground" Value="#89B4FA"/>
+                                <Setter Property="Foreground" Value="{Binding DataContext.Theme.AccentBlue, RelativeSource={RelativeSource AncestorType=Window}}"/>
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
@@ -251,7 +303,7 @@
                     <DataGridTextColumn Header="Name" Binding="{Binding TagName}" Width="220">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
-                                <Setter Property="Foreground" Value="#CDD6F4"/>
+                                <Setter Property="Foreground" Value="{Binding DataContext.Theme.TextPrimary, RelativeSource={RelativeSource AncestorType=Window}}"/>
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
@@ -260,7 +312,7 @@
                     <DataGridTextColumn Header="Source (Left)" Binding="{Binding LeftValue}" Width="*">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
-                                <Setter Property="Foreground" Value="#F38BA8"/>
+                                <Setter Property="Foreground" Value="{Binding DataContext.Theme.AccentRed, RelativeSource={RelativeSource AncestorType=Window}}"/>
                                 <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
                             </Style>
                         </DataGridTextColumn.ElementStyle>
@@ -270,7 +322,7 @@
                     <DataGridTextColumn Header="Reference (Right)" Binding="{Binding RightValue}" Width="*">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
-                                <Setter Property="Foreground" Value="#A6E3A1"/>
+                                <Setter Property="Foreground" Value="{Binding DataContext.Theme.AccentGreen, RelativeSource={RelativeSource AncestorType=Window}}"/>
                                 <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
                             </Style>
                         </DataGridTextColumn.ElementStyle>
@@ -290,27 +342,30 @@
             </DataGrid>
         </Border>
 
-        <!-- Status bar -->
-        <Border Grid.Row="5" Margin="0,8,0,0">
-            <TextBlock Text="{Binding StatusText}" FontSize="11" Foreground="#6C7086"/>
-        </Border>
+        <!-- Status bar and legend -->
+        <Grid Grid.Row="5" Margin="0,8,0,0">
+            <TextBlock Text="{Binding StatusText}" FontSize="11" Foreground="{Binding Theme.TextMuted}"
+                       HorizontalAlignment="Left" VerticalAlignment="Center"/>
 
-        <!-- Legend (always visible) -->
-        <StackPanel Grid.Row="5" HorizontalAlignment="Right" Orientation="Horizontal" Margin="0,8,0,0">
-            <Border Background="#2EA043" CornerRadius="3" Padding="6,2" Margin="0,0,8,0">
-                <TextBlock Text="SAFE" Foreground="White" FontSize="9" FontWeight="Bold"/>
-            </Border>
-            <TextBlock Text="No clinical impact" FontSize="10" Foreground="#6C7086" VerticalAlignment="Center" Margin="0,0,16,0"/>
+            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                <Border Background="#2EA043" CornerRadius="3" Padding="6,2" Margin="0,0,8,0">
+                    <TextBlock Text="SAFE" Foreground="White" FontSize="9" FontWeight="Bold"/>
+                </Border>
+                <TextBlock Text="No clinical impact" FontSize="10" Foreground="{Binding Theme.TextMuted}"
+                           VerticalAlignment="Center" Margin="0,0,16,0"/>
 
-            <Border Background="#D29922" CornerRadius="3" Padding="6,2" Margin="0,0,8,0">
-                <TextBlock Text="CAUTION" Foreground="White" FontSize="9" FontWeight="Bold"/>
-            </Border>
-            <TextBlock Text="Review needed" FontSize="10" Foreground="#6C7086" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                <Border Background="#D29922" CornerRadius="3" Padding="6,2" Margin="0,0,8,0">
+                    <TextBlock Text="CAUTION" Foreground="White" FontSize="9" FontWeight="Bold"/>
+                </Border>
+                <TextBlock Text="Review needed" FontSize="10" Foreground="{Binding Theme.TextMuted}"
+                           VerticalAlignment="Center" Margin="0,0,16,0"/>
 
-            <Border Background="#DA3633" CornerRadius="3" Padding="6,2" Margin="0,0,8,0">
-                <TextBlock Text="UNSAFE" Foreground="White" FontSize="9" FontWeight="Bold"/>
-            </Border>
-            <TextBlock Text="Affects measurements" FontSize="10" Foreground="#6C7086" VerticalAlignment="Center"/>
-        </StackPanel>
+                <Border Background="#DA3633" CornerRadius="3" Padding="6,2" Margin="0,0,8,0">
+                    <TextBlock Text="UNSAFE" Foreground="White" FontSize="9" FontWeight="Bold"/>
+                </Border>
+                <TextBlock Text="Affects measurements" FontSize="10" Foreground="{Binding Theme.TextMuted}"
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>

@@ -8,4 +8,8 @@ public class DicomTagEntry
     public string Value { get; set; } = string.Empty;
     public TagSafety Safety { get; set; }
     public string SafetyReason { get; set; } = string.Empty;
+
+    // For multi-file analysis: true if this tag has different values across files in the same folder
+    public bool IsInconsistent { get; set; }
+    public int DistinctValueCount { get; set; } = 1;
 }

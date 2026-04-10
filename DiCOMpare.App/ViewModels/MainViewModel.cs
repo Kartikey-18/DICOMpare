@@ -19,6 +19,8 @@ public class MainViewModel : INotifyPropertyChanged
     private bool _showOnlyDifferences;
     private bool _isCompared;
 
+    public ThemeService Theme { get; } = new();
+
     public ObservableCollection<DicomTagEntry> LeftTags { get; } = new();
     public ObservableCollection<DicomTagEntry> RightTags { get; } = new();
     public ObservableCollection<ComparisonRow> ComparisonRows { get; } = new();
@@ -77,14 +79,20 @@ public class MainViewModel : INotifyPropertyChanged
         $"Patient: {_leftStudy.PatientName} ({_leftStudy.PatientId})\n" +
         $"Study: {_leftStudy.StudyDescription}\n" +
         $"Series: {_leftStudy.SeriesDescription}\n" +
-        $"Files: {_leftStudy.FileCount}";
+        $"Files: {_leftStudy.FileCount}" +
+        (_leftStudy.InconsistentTagCount > 0
+            ? $"\nWARNING: {_leftStudy.InconsistentTagCount} tag(s) vary across files"
+            : "\nAll files consistent");
 
     public string RightStudySummary => _rightStudy == null ? "" :
         $"{_rightStudy.Modality} | {_rightStudy.SOPClassName}\n" +
         $"Patient: {_rightStudy.PatientName} ({_rightStudy.PatientId})\n" +
         $"Study: {_rightStudy.StudyDescription}\n" +
         $"Series: {_rightStudy.SeriesDescription}\n" +
-        $"Files: {_rightStudy.FileCount}";
+        $"Files: {_rightStudy.FileCount}" +
+        (_rightStudy.InconsistentTagCount > 0
+            ? $"\nWARNING: {_rightStudy.InconsistentTagCount} tag(s) vary across files"
+            : "\nAll files consistent");
 
     public async Task LoadLeftAsync(string path)
     {

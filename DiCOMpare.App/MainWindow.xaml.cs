@@ -67,6 +67,11 @@ public partial class MainWindow : Window
         }
     }
 
+    private void ToggleTheme_Click(object sender, RoutedEventArgs e)
+    {
+        _vm.Theme.Toggle();
+    }
+
     private void DragOverHandler(object sender, DragEventArgs e)
     {
         if (e.Data.GetDataPresent(DataFormats.FileDrop))
