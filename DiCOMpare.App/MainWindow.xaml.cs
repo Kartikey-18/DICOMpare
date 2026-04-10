@@ -2,6 +2,7 @@ using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Input;
+using DiCOMpare.Services;
 using DiCOMpare.ViewModels;
 using Microsoft.Win32;
 
@@ -77,10 +78,12 @@ public partial class MainWindow : Window
 
     private void ExportReport_Click(object sender, RoutedEventArgs e)
     {
+        var redactPhi = RedactPhiCheckbox.IsChecked == true;
+
         var dialog = new SaveFileDialog
         {
-            Filter = "Text files (*.txt)|*.txt|CSV files (*.csv)|*.csv",
-            DefaultExt = ".txt",
+            Filter = "PDF report (*.pdf)|*.pdf|Text files (*.txt)|*.txt|CSV files (*.csv)|*.csv",
+            DefaultExt = ".pdf",
             FileName = "DiCOMpare_Report",
         };
 
@@ -88,41 +91,74 @@ public partial class MainWindow : Window
         {
             try
             {
-                var sb = new StringBuilder();
-                sb.AppendLine("DiCOMpare Report");
-                sb.AppendLine(new string('=', 80));
-                sb.AppendLine($"Generated: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
-                sb.AppendLine($"Source: {_vm.LeftPath}");
-                sb.AppendLine($"Reference: {_vm.RightPath}");
-                sb.AppendLine();
-                sb.AppendLine(_vm.VerdictText);
-                sb.AppendLine(_vm.SummaryText);
-                sb.AppendLine();
-                sb.AppendLine(new string('-', 80));
-
-                if (dialog.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+                if (dialog.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
                 {
-                    sb.AppendLine("Safety,Tag,Name,Source Value,Reference Value,Status,Reason");
-                    foreach (var row in _vm.FilteredRows)
-                    {
-                        sb.AppendLine($"\"{row.Safety}\",\"{row.Tag}\",\"{row.TagName}\",\"{Escape(row.LeftValue)}\",\"{Escape(row.RightValue)}\",\"{row.Status}\",\"{Escape(row.SafetyReason)}\"");
-                    }
+                    PdfExportService.Export(
+                        dialog.FileName,
+                        _vm.LeftPath,
+                        _vm.RightPath,
+                        _vm.LeftStudySummary,
+                        _vm.RightStudySummary,
+                        _vm.VerdictText,
+                        _vm.SummaryText,
+                        _vm.FilteredRows,
+                        redactPhi);
                 }
                 else
                 {
-                    sb.AppendLine($"{"Safety",-10} {"Tag",-16} {"Name",-30} {"Status",-12} Reason");
-                    sb.AppendLine(new string('-', 80));
-                    foreach (var row in _vm.FilteredRows)
+                    var sb = new StringBuilder();
+                    sb.AppendLine("DiCOMpare Report");
+                    sb.AppendLine(new string('=', 80));
+                    sb.AppendLine($"Generated: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+                    if (redactPhi)
                     {
-                        if (!row.IsMismatch) continue;
-                        sb.AppendLine($"{row.Safety,-10} {row.Tag,-16} {row.TagName,-30} {row.Status,-12} {row.SafetyReason}");
-                        sb.AppendLine($"{"",10} Source:    {row.LeftValue}");
-                        sb.AppendLine($"{"",10} Reference: {row.RightValue}");
-                        sb.AppendLine();
+                        sb.AppendLine("PHI has been redacted from this report.");
+                        sb.AppendLine($"Source: [Path redacted]");
+                        sb.AppendLine($"Reference: [Path redacted]");
                     }
+                    else
+                    {
+                        sb.AppendLine($"Source: {_vm.LeftPath}");
+                        sb.AppendLine($"Reference: {_vm.RightPath}");
+                    }
+                    sb.AppendLine();
+                    sb.AppendLine(_vm.VerdictText);
+                    sb.AppendLine(_vm.SummaryText);
+                    sb.AppendLine();
+                    sb.AppendLine(new string('-', 80));
+
+                    if (dialog.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+                    {
+                        sb.AppendLine("Safety,Tag,Name,Source Value,Reference Value,Status,Reason");
+                        foreach (var row in _vm.FilteredRows)
+                        {
+                            var leftVal = redactPhi ? PhiRedactionService.Redact(row.Tag, row.LeftValue) : row.LeftValue;
+                            var rightVal = redactPhi ? PhiRedactionService.Redact(row.Tag, row.RightValue) : row.RightValue;
+                            sb.AppendLine($"\"{row.Safety}\",\"{row.Tag}\",\"{row.TagName}\",\"{Escape(leftVal)}\",\"{Escape(rightVal)}\",\"{row.Status}\",\"{Escape(row.SafetyReason)}\"");
+                        }
+                    }
+                    else
+                    {
+                        sb.AppendLine($"{"Safety",-10} {"Tag",-16} {"Name",-30} {"Status",-12} Reason");
+                        sb.AppendLine(new string('-', 80));
+                        foreach (var row in _vm.FilteredRows)
+                        {
+                            if (!row.IsMismatch) continue;
+                            var leftVal = redactPhi ? PhiRedactionService.Redact(row.Tag, row.LeftValue) : row.LeftValue;
+                            var rightVal = redactPhi ? PhiRedactionService.Redact(row.Tag, row.RightValue) : row.RightValue;
+                            sb.AppendLine($"{row.Safety,-10} {row.Tag,-16} {row.TagName,-30} {row.Status,-12} {row.SafetyReason}");
+                            sb.AppendLine($"{"",10} Source:    {leftVal}");
+                            sb.AppendLine($"{"",10} Reference: {rightVal}");
+                            sb.AppendLine();
+                        }
+                    }
+
+                    sb.AppendLine();
+                    sb.AppendLine("For diagnostic purposes only. Not a clinical decision tool.");
+
+                    File.WriteAllText(dialog.FileName, sb.ToString());
                 }
 
-                File.WriteAllText(dialog.FileName, sb.ToString());
                 _vm.StatusText = $"Report exported to: {dialog.FileName}";
             }
             catch (Exception ex)
